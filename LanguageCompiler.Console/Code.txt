@@ -1,0 +1,13 @@
+﻿{
+a:int;
+b:float;
+a:= b > 0;
+c:=55
+while(a>0){
+    print('test');
+    if(b = 0){
+        a := b + 1;
+    }
+}
+
+}
