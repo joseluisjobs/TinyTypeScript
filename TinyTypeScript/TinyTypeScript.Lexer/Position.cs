@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LanguageCompiler.Lexer
+namespace TinyTypeScript.Lexer
 {
     public readonly struct Position
     {
@@ -14,7 +14,7 @@ namespace LanguageCompiler.Lexer
 
         public int Column { get; }
 
-        public Position(int absolute, int line, int column )
+        public Position(int absolute, int line, int column)
         {
             Absolute = absolute;
             Line = line;

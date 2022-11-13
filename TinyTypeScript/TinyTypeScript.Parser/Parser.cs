@@ -1,6 +1,11 @@
-﻿using LanguageCompiler.Lexer;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using TinyTypeScript.Lexer;
 
-namespace LanguageCompiler.Parser
+namespace TinyTypeScript.Parser
 {
     public class Parser
     {
@@ -139,7 +144,7 @@ namespace LanguageCompiler.Parser
                 EqExpr();
             }
         }
-	
+
         private void EqExpr()
         {
             RelExpr();
@@ -149,7 +154,7 @@ namespace LanguageCompiler.Parser
                 RelExpr();
             }
         }
-	
+
         private void RelExpr()
         {
             Expr();
@@ -162,7 +167,7 @@ namespace LanguageCompiler.Parser
                 Expr();
             }
         }
-	
+
         private void Expr()
         {
             Term();
@@ -173,7 +178,7 @@ namespace LanguageCompiler.Parser
                 Term();
             }
         }
-	
+
         private void Term()
         {
             Factor();
@@ -185,7 +190,7 @@ namespace LanguageCompiler.Parser
                 Factor();
             }
         }
-	
+
         private void Factor()
         {
             switch (this.lookAhead.TokenType)

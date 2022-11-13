@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LanguageCompiler.Lexer
+namespace TinyTypeScript.Lexer
 {
     public enum TokenType
     {
