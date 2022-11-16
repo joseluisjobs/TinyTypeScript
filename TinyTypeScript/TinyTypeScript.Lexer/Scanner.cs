@@ -18,11 +18,13 @@ namespace TinyTypeScript.Lexer
             {
                 { "if", TokenType.IfKeyword },
                 { "else", TokenType.ElseKeyword },
-                { "int", TokenType.IntKeyword },
-                { "float", TokenType.FloatKeyword },
+                { "number", TokenType.NumberKeyword },
                 { "string", TokenType.StringKeyword },
                 { "while", TokenType.WhileKeyword },
-                { "print", TokenType.PrintKeyword },
+                { "Console.log", TokenType.PrintKeyword },
+                { "let", TokenType.LetKeyword},
+                { "var", TokenType.VarKeyword },
+                { "const", TokenType.ConstKeyword },
             };
         }
 
@@ -154,19 +156,11 @@ namespace TinyTypeScript.Lexer
                             return lexeme.ToToken(input, TokenType.SemiColon);
                         case '=':
                             lexeme.Append(currentChar);
-                            return lexeme.ToToken(input, TokenType.Equal);
+                            return lexeme.ToToken(input, TokenType.Assignation);
                         case ':':
                             {
                                 lexeme.Append(currentChar);
-                                currentChar = PeekNextChar();
-                                if (currentChar != '=')
-                                {
-                                    return lexeme.ToToken(input, TokenType.Colon);
-                                }
-
-                                currentChar = GetNextChar();
-                                lexeme.Append(currentChar);
-                                return lexeme.ToToken(input, TokenType.Assignation);
+                                return lexeme.ToToken(input, TokenType.Colon);
                             }
                         case '\'':
                             {

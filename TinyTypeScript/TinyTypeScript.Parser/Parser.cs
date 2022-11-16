@@ -24,7 +24,8 @@ namespace TinyTypeScript.Parser
         }
         private void Code()
         {
-            Block();
+            Decls();
+            Stmts();
         }
 
         private void Block()
@@ -42,7 +43,7 @@ namespace TinyTypeScript.Parser
         private void Stmts()
         {
             //{}
-            if (this.lookAhead.TokenType == TokenType.CloseBrace)
+            if (this.lookAhead.TokenType == TokenType.EOF)
             {
                 //eps
             }
@@ -71,7 +72,6 @@ namespace TinyTypeScript.Parser
                     IfStatement();
                     break;
                 default:
-                    Block();
                     break;
             }
         }
@@ -227,37 +227,47 @@ namespace TinyTypeScript.Parser
 
         private void Decls()
         {
-            if (this.lookAhead.TokenType == TokenType.Colon)
+            var token = this.lookAhead.TokenType;
+            if ( token== TokenType.LetKeyword || token == TokenType.VarKeyword || token == TokenType.ConstKeyword)
             {
-                Decl();
+                //hola
+                Decl(token);
                 Decls();
             }
         }
 
-        private void Decl()
+        private void Identifier()
         {
-            Match(TokenType.Colon);
-            Type();
-            Match(TokenType.SemiColon);
             if (this.lookAhead.TokenType == TokenType.Identifier)
             {
-                this.Match(TokenType.Identifier);
+                Match(TokenType.Identifier);
             }
+        }
+
+        private void Decl(TokenType token)
+        {
+            Match(token);
+            Identifier();
+            Match(TokenType.Colon);
+            Type();
+            if (this.lookAhead.TokenType == TokenType.Assignation)
+                AssignationStatement();
+            else
+                Match(TokenType.SemiColon);
+           
         }
 
         private void Type()
         {
             switch (this.lookAhead.TokenType)
             {
-                case TokenType.FloatKeyword:
-                    Match(TokenType.FloatKeyword);
+                case TokenType.NumberKeyword:
+                    Match(TokenType.NumberKeyword);
                     break;
                 case TokenType.StringKeyword:
                     Match(TokenType.StringKeyword);
                     break;
-                default:
-                    Match(TokenType.IntKeyword);
-                    break;
+
             }
         }
 
