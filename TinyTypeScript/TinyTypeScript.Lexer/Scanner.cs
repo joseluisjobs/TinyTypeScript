@@ -10,6 +10,7 @@ namespace TinyTypeScript.Lexer
     {
         private Input input;
         private readonly Dictionary<string, TokenType> keywords;
+        private readonly Dictionary<string, TokenType> types;
 
         public Scanner(Input input)
         {
@@ -25,6 +26,15 @@ namespace TinyTypeScript.Lexer
                 { "let", TokenType.LetKeyword},
                 { "var", TokenType.VarKeyword },
                 { "const", TokenType.ConstKeyword },
+                { "boolean", TokenType.Boolean },
+                { "string[]", TokenType.StringArrayKeyword }
+                
+            };
+            this.types = new Dictionary<string, TokenType> 
+            {
+                { "string", TokenType.StringKeyword },
+                { "number", TokenType.NumberKeyword },
+                { "boolean", TokenType.Boolean },
             };
         }
 
@@ -48,7 +58,18 @@ namespace TinyTypeScript.Lexer
                         lexeme.Append(currentChar);
                         currentChar = PeekNextChar();
                     }
-
+                    if (this.types.ContainsKey(lexeme.ToString()))
+                    {
+                        currentChar = GetNextChar();
+                        if(currentChar== '[')
+                        lexeme.Append(currentChar);
+                        currentChar = PeekNextChar();
+                        if(currentChar == ']')
+                        {
+                            currentChar = GetNextChar();
+                            lexeme.Append(currentChar);
+                        }
+                    }
                     if (this.keywords.ContainsKey(lexeme.ToString()))
                     {
                         return lexeme.ToToken(input, this.keywords[lexeme.ToString()]);
@@ -174,8 +195,26 @@ namespace TinyTypeScript.Lexer
                                 lexeme.Append(currentChar);
                                 return lexeme.ToToken(input, TokenType.StringConstant);
                             }
+                        case '\"':
+                            {
+                                lexeme.Append(currentChar);
+                                currentChar = GetNextChar();
+                                while (currentChar != '\"')
+                                {
+                                    lexeme.Append(currentChar);
+                                    currentChar = GetNextChar();
+                                }
+                                lexeme.Append(currentChar);
+                                return lexeme.ToToken(input, TokenType.StringConstant);
+                            }
                         case '\0':
                             return lexeme.ToToken(input, TokenType.EOF);
+                        case '[':
+                            lexeme.Append(currentChar);
+                            return lexeme.ToToken(input, TokenType.SquareOpenBrace);
+                        case ']':
+                            lexeme.Append(currentChar);
+                            return lexeme.ToToken(input, TokenType.SquareCloseBrace);
                         case '{':
                             lexeme.Append(currentChar);
                             return lexeme.ToToken(input, TokenType.OpenBrace);

@@ -34,6 +34,9 @@ namespace TinyTypeScript.Lexer
         CloseBrace,
         Comma,
         StringKeyword,
+        StringArrayKeyword,
+        NumberArrayKeyword,
+        BooleanArrayKeyword,
         Colon,
         WhileKeyword,
         PrintKeyword,
@@ -58,7 +61,7 @@ namespace TinyTypeScript.Lexer
         CircumFlex,
         PlusPlus,
         MinusMinus,
-
+        Boolean,
 
 
     }

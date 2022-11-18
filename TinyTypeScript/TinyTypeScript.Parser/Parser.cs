@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -70,6 +70,11 @@ namespace TinyTypeScript.Parser
                     break;
                 case TokenType.IfKeyword:
                     IfStatement();
+                    break;
+                case TokenType.LetKeyword:
+                case TokenType.VarKeyword:
+                case TokenType.ConstKeyword:
+                    Decls();
                     break;
                 default:
                     break;
@@ -221,6 +226,7 @@ namespace TinyTypeScript.Parser
                 Match(TokenType.Identifier);
             }
             Match(TokenType.Assignation);
+
             LogicalOrExpr();
             this.Match(TokenType.SemiColon);
         }
@@ -257,6 +263,18 @@ namespace TinyTypeScript.Parser
            
         }
 
+        private void ArrayAssignationState() {
+
+            if (this.lookAhead.TokenType == TokenType.Identifier)
+            {
+                Match(TokenType.Identifier);
+            }
+            Match(TokenType.Assignation);
+            Match(TokenType.SquareOpenBrace);
+            Params();
+            Match(TokenType.SquareCloseBrace);
+        }
+        
         private void Type()
         {
             switch (this.lookAhead.TokenType)
@@ -266,6 +284,13 @@ namespace TinyTypeScript.Parser
                     break;
                 case TokenType.StringKeyword:
                     Match(TokenType.StringKeyword);
+                    break;
+                case TokenType.Boolean:
+                    Match(TokenType.Boolean);
+                    break;
+                case TokenType.StringArrayKeyword: 
+                    Match(TokenType.StringArrayKeyword);
+                    ArrayAssignationState();
                     break;
 
             }
