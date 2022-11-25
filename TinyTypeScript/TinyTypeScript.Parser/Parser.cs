@@ -214,6 +214,12 @@ namespace TinyTypeScript.Parser
                 case TokenType.StringConstant:
                     Match(TokenType.StringConstant);
                     break;
+                case TokenType.TrueKeyword:
+                    Match(TokenType.TrueKeyword);
+                    break;
+                case TokenType.FalseKeyword:
+                    Match(TokenType.FalseKeyword);
+                    break;
                 default:
                     Match(TokenType.Identifier);
                     break;
@@ -269,6 +275,7 @@ namespace TinyTypeScript.Parser
             {
                 Match(TokenType.Identifier);
             }
+            if (this.lookAhead.TokenType != TokenType.Assignation) return;
             Match(TokenType.Assignation);
             Match(TokenType.SquareOpenBrace);
             Params();
@@ -290,6 +297,14 @@ namespace TinyTypeScript.Parser
                     break;
                 case TokenType.StringArrayKeyword: 
                     Match(TokenType.StringArrayKeyword);
+                    ArrayAssignationState();
+                    break;
+                case TokenType.NumberArrayKeyword: 
+                    Match(TokenType.NumberArrayKeyword);
+                    ArrayAssignationState();
+                    break;
+                case TokenType.BooleanArrayKeyword: 
+                    Match(TokenType.BooleanArrayKeyword);
                     ArrayAssignationState();
                     break;
 
