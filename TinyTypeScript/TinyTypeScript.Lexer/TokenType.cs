@@ -62,7 +62,7 @@ namespace TinyTypeScript.Lexer
         PlusPlus,
         MinusMinus,
         Boolean,
-
+        Function
 
     }
 }

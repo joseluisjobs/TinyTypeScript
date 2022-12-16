@@ -43,7 +43,7 @@ namespace TinyTypeScript.Parser
         private void Stmts()
         {
             //{}
-            if (this.lookAhead.TokenType == TokenType.EOF)
+            if (this.lookAhead.TokenType == TokenType.EOF || this.lookAhead.TokenType == TokenType.CloseBrace)
             {
                 //eps
             }
@@ -65,11 +65,17 @@ namespace TinyTypeScript.Parser
                 case TokenType.WhileKeyword:
                     WhileStatement();
                     break;
+                case TokenType.Function:
+                    FunctionStatement();
+                    break;
                 case TokenType.PrintKeyword:
                     PrintStatement();
                     break;
                 case TokenType.IfKeyword:
                     IfStatement();
+                    break;
+                case TokenType.ForKeyword:
+                    ForStatement();
                     break;
                 case TokenType.LetKeyword:
                 case TokenType.VarKeyword:
@@ -105,6 +111,58 @@ namespace TinyTypeScript.Parser
             Match(TokenType.SemiColon);
         }
 
+        private void ForStatement()
+        {
+            Match(TokenType.ForKeyword);
+            Match(TokenType.LeftParens);
+            var token = this.lookAhead.TokenType;
+            if (token == TokenType.LetKeyword || token == TokenType.VarKeyword)
+            {
+                Match(token);
+                Identifier();
+                Match(TokenType.Colon);
+                Match(TokenType.NumberKeyword);
+                AssignationStatement();
+                LogicalOrExpr();
+                Match(TokenType.SemiColon);
+                IncrementalFor();
+                Match(TokenType.RightParens);
+                Block();
+            }
+            else
+            {
+                Match(TokenType.LetKeyword);
+            }
+
+        }
+
+        private void IncrementalFor(){
+            var token = this.lookAhead.TokenType;
+            if (token == TokenType.MinusMinus)
+            {
+                Match(TokenType.MinusMinus);
+                Match(TokenType.Identifier);
+            }else if (token == TokenType.PlusPlus) {
+                Match(TokenType.PlusPlus);
+                Match(TokenType.Identifier);
+            }else if (token == TokenType.Identifier){
+                Match(TokenType.Identifier);
+                token= this.lookAhead.TokenType;
+               if (token == TokenType.MinusMinus) {
+                    Match(TokenType.MinusMinus);
+                }
+                else if (token == TokenType.PlusPlus)
+                {
+                    Match(TokenType.PlusPlus);
+                }
+                else if (TokenType.Assignation == token)
+                {
+                    Match(TokenType.Assignation);
+                    LogicalOrExpr();
+                }
+            }
+        }
+
         private void Params()
         {
             LogicalOrExpr();
@@ -121,6 +179,43 @@ namespace TinyTypeScript.Parser
             }
         }
 
+       private void FunctionParams()
+        {
+            if (this.lookAhead.TokenType != TokenType.Identifier) return;
+            FuncDecl();
+            FunctionParamsPrime();
+        }
+
+        private void FunctionParamsPrime()
+        {
+
+            if (this.lookAhead.TokenType == TokenType.Comma)
+            {
+                Match(TokenType.Comma);
+                FuncDecl();
+                FunctionParamsPrime();
+            }
+        }
+        
+        private void FuncDecl()
+        {
+            
+            Match(TokenType.Identifier);
+            Match(TokenType.Colon);
+            Type();
+           
+        }
+        private void FunctionStatement()
+        {
+            Match(TokenType.Function);
+            Match(TokenType.Identifier);
+            Match(TokenType.LeftParens);
+            FunctionParams();
+            Match(TokenType.RightParens);
+            Match(TokenType.Colon);
+            Type();
+            Block();
+        }
         private void WhileStatement()
         {
             Match(TokenType.WhileKeyword);

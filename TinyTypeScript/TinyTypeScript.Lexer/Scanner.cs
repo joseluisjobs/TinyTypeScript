@@ -27,7 +27,11 @@ namespace TinyTypeScript.Lexer
                 { "var", TokenType.VarKeyword },
                 { "const", TokenType.ConstKeyword },
                 { "boolean", TokenType.Boolean },
-                { "string[]", TokenType.StringArrayKeyword }
+                { "string[]", TokenType.StringArrayKeyword },
+                { "boolean[]", TokenType.BooleanArrayKeyword},
+                { "number[]", TokenType.NumberArrayKeyword},
+                { "for", TokenType.ForKeyword},
+                { "function", TokenType.Function}
                 
             };
             this.types = new Dictionary<string, TokenType> 
@@ -60,15 +64,20 @@ namespace TinyTypeScript.Lexer
                     }
                     if (this.types.ContainsKey(lexeme.ToString()))
                     {
-                        currentChar = GetNextChar();
-                        if(currentChar== '[')
-                        lexeme.Append(currentChar);
                         currentChar = PeekNextChar();
-                        if(currentChar == ']')
+                        if(currentChar== '[')
                         {
-                            currentChar = GetNextChar();
+                           currentChar= GetNextChar();
                             lexeme.Append(currentChar);
+                            currentChar = PeekNextChar();
+                            if (currentChar == ']')
+                            {
+                                currentChar = GetNextChar();
+                                lexeme.Append(currentChar);
+                            }
                         }
+
+                        
                     }
                     if (this.keywords.ContainsKey(lexeme.ToString()))
                     {
@@ -158,11 +167,24 @@ namespace TinyTypeScript.Lexer
                             GetNextChar();
                             return lexeme.ToToken(input, TokenType.GreaterOrEqualThan);
                         case '+':
-                            lexeme.Append(currentChar);
-                            return lexeme.ToToken(input, TokenType.Plus);
+                            nextChar= PeekNextChar();
+                            if (nextChar != '+')
+                            {
+                                return lexeme.ToToken(input, TokenType.Plus);
+                            }
+                            lexeme.Append(nextChar);
+                            GetNextChar();
+                            return lexeme.ToToken(input, TokenType.PlusPlus);
                         case '-':
                             lexeme.Append(currentChar);
-                            return lexeme.ToToken(input, TokenType.Minus);
+                            nextChar= PeekNextChar();
+                            if (nextChar != '-')
+                            {
+                                return lexeme.ToToken(input, TokenType.Minus);
+                            }
+                            lexeme.Append(nextChar);
+                            GetNextChar();
+                            return lexeme.ToToken(input, TokenType.MinusMinus);
                         case '(':
                             lexeme.Append(currentChar);
                             return lexeme.ToToken(input, TokenType.LeftParens);
