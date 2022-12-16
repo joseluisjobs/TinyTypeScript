@@ -1,6 +1,11 @@
-﻿using LanguageCompiler.Lexer;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using TinyTypeScript.Lexer;
 
-namespace LanguageCompiler.Parser
+namespace TinyTypeScript.Parser
 {
     public class Parser
     {
@@ -19,7 +24,8 @@ namespace LanguageCompiler.Parser
         }
         private void Code()
         {
-            Block();
+            Decls();
+            Stmts();
         }
 
         private void Block()
@@ -37,7 +43,7 @@ namespace LanguageCompiler.Parser
         private void Stmts()
         {
             //{}
-            if (this.lookAhead.TokenType == TokenType.CloseBrace)
+            if (this.lookAhead.TokenType == TokenType.EOF || this.lookAhead.TokenType == TokenType.CloseBrace)
             {
                 //eps
             }
@@ -59,14 +65,24 @@ namespace LanguageCompiler.Parser
                 case TokenType.WhileKeyword:
                     WhileStatement();
                     break;
+                case TokenType.Function:
+                    FunctionStatement();
+                    break;
                 case TokenType.PrintKeyword:
                     PrintStatement();
                     break;
                 case TokenType.IfKeyword:
                     IfStatement();
                     break;
+                case TokenType.ForKeyword:
+                    ForStatement();
+                    break;
+                case TokenType.LetKeyword:
+                case TokenType.VarKeyword:
+                case TokenType.ConstKeyword:
+                    Decls();
+                    break;
                 default:
-                    Block();
                     break;
             }
         }
@@ -95,6 +111,58 @@ namespace LanguageCompiler.Parser
             Match(TokenType.SemiColon);
         }
 
+        private void ForStatement()
+        {
+            Match(TokenType.ForKeyword);
+            Match(TokenType.LeftParens);
+            var token = this.lookAhead.TokenType;
+            if (token == TokenType.LetKeyword || token == TokenType.VarKeyword)
+            {
+                Match(token);
+                Identifier();
+                Match(TokenType.Colon);
+                Match(TokenType.NumberKeyword);
+                AssignationStatement();
+                LogicalOrExpr();
+                Match(TokenType.SemiColon);
+                IncrementalFor();
+                Match(TokenType.RightParens);
+                Block();
+            }
+            else
+            {
+                Match(TokenType.LetKeyword);
+            }
+
+        }
+
+        private void IncrementalFor(){
+            var token = this.lookAhead.TokenType;
+            if (token == TokenType.MinusMinus)
+            {
+                Match(TokenType.MinusMinus);
+                Match(TokenType.Identifier);
+            }else if (token == TokenType.PlusPlus) {
+                Match(TokenType.PlusPlus);
+                Match(TokenType.Identifier);
+            }else if (token == TokenType.Identifier){
+                Match(TokenType.Identifier);
+                token= this.lookAhead.TokenType;
+               if (token == TokenType.MinusMinus) {
+                    Match(TokenType.MinusMinus);
+                }
+                else if (token == TokenType.PlusPlus)
+                {
+                    Match(TokenType.PlusPlus);
+                }
+                else if (TokenType.Assignation == token)
+                {
+                    Match(TokenType.Assignation);
+                    LogicalOrExpr();
+                }
+            }
+        }
+
         private void Params()
         {
             LogicalOrExpr();
@@ -111,6 +179,43 @@ namespace LanguageCompiler.Parser
             }
         }
 
+       private void FunctionParams()
+        {
+            if (this.lookAhead.TokenType != TokenType.Identifier) return;
+            FuncDecl();
+            FunctionParamsPrime();
+        }
+
+        private void FunctionParamsPrime()
+        {
+
+            if (this.lookAhead.TokenType == TokenType.Comma)
+            {
+                Match(TokenType.Comma);
+                FuncDecl();
+                FunctionParamsPrime();
+            }
+        }
+        
+        private void FuncDecl()
+        {
+            
+            Match(TokenType.Identifier);
+            Match(TokenType.Colon);
+            Type();
+           
+        }
+        private void FunctionStatement()
+        {
+            Match(TokenType.Function);
+            Match(TokenType.Identifier);
+            Match(TokenType.LeftParens);
+            FunctionParams();
+            Match(TokenType.RightParens);
+            Match(TokenType.Colon);
+            Type();
+            Block();
+        }
         private void WhileStatement()
         {
             Match(TokenType.WhileKeyword);
@@ -139,7 +244,7 @@ namespace LanguageCompiler.Parser
                 EqExpr();
             }
         }
-	
+
         private void EqExpr()
         {
             RelExpr();
@@ -149,7 +254,7 @@ namespace LanguageCompiler.Parser
                 RelExpr();
             }
         }
-	
+
         private void RelExpr()
         {
             Expr();
@@ -162,7 +267,7 @@ namespace LanguageCompiler.Parser
                 Expr();
             }
         }
-	
+
         private void Expr()
         {
             Term();
@@ -173,7 +278,7 @@ namespace LanguageCompiler.Parser
                 Term();
             }
         }
-	
+
         private void Term()
         {
             Factor();
@@ -185,7 +290,7 @@ namespace LanguageCompiler.Parser
                 Factor();
             }
         }
-	
+
         private void Factor()
         {
             switch (this.lookAhead.TokenType)
@@ -204,6 +309,12 @@ namespace LanguageCompiler.Parser
                 case TokenType.StringConstant:
                     Match(TokenType.StringConstant);
                     break;
+                case TokenType.TrueKeyword:
+                    Match(TokenType.TrueKeyword);
+                    break;
+                case TokenType.FalseKeyword:
+                    Match(TokenType.FalseKeyword);
+                    break;
                 default:
                     Match(TokenType.Identifier);
                     break;
@@ -216,43 +327,82 @@ namespace LanguageCompiler.Parser
                 Match(TokenType.Identifier);
             }
             Match(TokenType.Assignation);
+
             LogicalOrExpr();
             this.Match(TokenType.SemiColon);
         }
 
         private void Decls()
         {
-            if (this.lookAhead.TokenType == TokenType.Colon)
+            var token = this.lookAhead.TokenType;
+            if ( token== TokenType.LetKeyword || token == TokenType.VarKeyword || token == TokenType.ConstKeyword)
             {
-                Decl();
+                //hola
+                Decl(token);
                 Decls();
             }
         }
 
-        private void Decl()
+        private void Identifier()
         {
-            Match(TokenType.Colon);
-            Type();
-            Match(TokenType.SemiColon);
             if (this.lookAhead.TokenType == TokenType.Identifier)
             {
-                this.Match(TokenType.Identifier);
+                Match(TokenType.Identifier);
             }
         }
 
+        private void Decl(TokenType token)
+        {
+            Match(token);
+            Identifier();
+            Match(TokenType.Colon);
+            Type();
+            if (this.lookAhead.TokenType == TokenType.Assignation)
+                AssignationStatement();
+            else
+                Match(TokenType.SemiColon);
+           
+        }
+
+        private void ArrayAssignationState() {
+
+            if (this.lookAhead.TokenType == TokenType.Identifier)
+            {
+                Match(TokenType.Identifier);
+            }
+            if (this.lookAhead.TokenType != TokenType.Assignation) return;
+            Match(TokenType.Assignation);
+            Match(TokenType.SquareOpenBrace);
+            Params();
+            Match(TokenType.SquareCloseBrace);
+        }
+        
         private void Type()
         {
             switch (this.lookAhead.TokenType)
             {
-                case TokenType.FloatKeyword:
-                    Match(TokenType.FloatKeyword);
+                case TokenType.NumberKeyword:
+                    Match(TokenType.NumberKeyword);
                     break;
                 case TokenType.StringKeyword:
                     Match(TokenType.StringKeyword);
                     break;
-                default:
-                    Match(TokenType.IntKeyword);
+                case TokenType.Boolean:
+                    Match(TokenType.Boolean);
                     break;
+                case TokenType.StringArrayKeyword: 
+                    Match(TokenType.StringArrayKeyword);
+                    ArrayAssignationState();
+                    break;
+                case TokenType.NumberArrayKeyword: 
+                    Match(TokenType.NumberArrayKeyword);
+                    ArrayAssignationState();
+                    break;
+                case TokenType.BooleanArrayKeyword: 
+                    Match(TokenType.BooleanArrayKeyword);
+                    ArrayAssignationState();
+                    break;
+
             }
         }
 

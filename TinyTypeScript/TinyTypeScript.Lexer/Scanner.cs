@@ -1,11 +1,16 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace LanguageCompiler.Lexer
+namespace TinyTypeScript.Lexer
 {
     public class Scanner : IScanner
     {
         private Input input;
         private readonly Dictionary<string, TokenType> keywords;
+        private readonly Dictionary<string, TokenType> types;
 
         public Scanner(Input input)
         {
@@ -14,11 +19,26 @@ namespace LanguageCompiler.Lexer
             {
                 { "if", TokenType.IfKeyword },
                 { "else", TokenType.ElseKeyword },
-                { "int", TokenType.IntKeyword },
-                { "float", TokenType.FloatKeyword },
+                { "number", TokenType.NumberKeyword },
                 { "string", TokenType.StringKeyword },
                 { "while", TokenType.WhileKeyword },
-                { "print", TokenType.PrintKeyword },
+                { "Console.log", TokenType.PrintKeyword },
+                { "let", TokenType.LetKeyword},
+                { "var", TokenType.VarKeyword },
+                { "const", TokenType.ConstKeyword },
+                { "boolean", TokenType.Boolean },
+                { "string[]", TokenType.StringArrayKeyword },
+                { "boolean[]", TokenType.BooleanArrayKeyword},
+                { "number[]", TokenType.NumberArrayKeyword},
+                { "for", TokenType.ForKeyword},
+                { "function", TokenType.Function}
+                
+            };
+            this.types = new Dictionary<string, TokenType> 
+            {
+                { "string", TokenType.StringKeyword },
+                { "number", TokenType.NumberKeyword },
+                { "boolean", TokenType.Boolean },
             };
         }
 
@@ -42,7 +62,23 @@ namespace LanguageCompiler.Lexer
                         lexeme.Append(currentChar);
                         currentChar = PeekNextChar();
                     }
+                    if (this.types.ContainsKey(lexeme.ToString()))
+                    {
+                        currentChar = PeekNextChar();
+                        if(currentChar== '[')
+                        {
+                           currentChar= GetNextChar();
+                            lexeme.Append(currentChar);
+                            currentChar = PeekNextChar();
+                            if (currentChar == ']')
+                            {
+                                currentChar = GetNextChar();
+                                lexeme.Append(currentChar);
+                            }
+                        }
 
+                        
+                    }
                     if (this.keywords.ContainsKey(lexeme.ToString()))
                     {
                         return lexeme.ToToken(input, this.keywords[lexeme.ToString()]);
@@ -131,11 +167,24 @@ namespace LanguageCompiler.Lexer
                             GetNextChar();
                             return lexeme.ToToken(input, TokenType.GreaterOrEqualThan);
                         case '+':
-                            lexeme.Append(currentChar);
-                            return lexeme.ToToken(input, TokenType.Plus);
+                            nextChar= PeekNextChar();
+                            if (nextChar != '+')
+                            {
+                                return lexeme.ToToken(input, TokenType.Plus);
+                            }
+                            lexeme.Append(nextChar);
+                            GetNextChar();
+                            return lexeme.ToToken(input, TokenType.PlusPlus);
                         case '-':
                             lexeme.Append(currentChar);
-                            return lexeme.ToToken(input, TokenType.Minus);
+                            nextChar= PeekNextChar();
+                            if (nextChar != '-')
+                            {
+                                return lexeme.ToToken(input, TokenType.Minus);
+                            }
+                            lexeme.Append(nextChar);
+                            GetNextChar();
+                            return lexeme.ToToken(input, TokenType.MinusMinus);
                         case '(':
                             lexeme.Append(currentChar);
                             return lexeme.ToToken(input, TokenType.LeftParens);
@@ -150,19 +199,11 @@ namespace LanguageCompiler.Lexer
                             return lexeme.ToToken(input, TokenType.SemiColon);
                         case '=':
                             lexeme.Append(currentChar);
-                            return lexeme.ToToken(input, TokenType.Equal);
+                            return lexeme.ToToken(input, TokenType.Assignation);
                         case ':':
                             {
                                 lexeme.Append(currentChar);
-                                currentChar = PeekNextChar();
-                                if (currentChar != '=')
-                                {
-                                    return lexeme.ToToken(input, TokenType.Colon);
-                                }
-
-                                currentChar = GetNextChar();
-                                lexeme.Append(currentChar);
-                                return lexeme.ToToken(input, TokenType.Assignation);
+                                return lexeme.ToToken(input, TokenType.Colon);
                             }
                         case '\'':
                             {
@@ -176,8 +217,26 @@ namespace LanguageCompiler.Lexer
                                 lexeme.Append(currentChar);
                                 return lexeme.ToToken(input, TokenType.StringConstant);
                             }
+                        case '\"':
+                            {
+                                lexeme.Append(currentChar);
+                                currentChar = GetNextChar();
+                                while (currentChar != '\"')
+                                {
+                                    lexeme.Append(currentChar);
+                                    currentChar = GetNextChar();
+                                }
+                                lexeme.Append(currentChar);
+                                return lexeme.ToToken(input, TokenType.StringConstant);
+                            }
                         case '\0':
                             return lexeme.ToToken(input, TokenType.EOF);
+                        case '[':
+                            lexeme.Append(currentChar);
+                            return lexeme.ToToken(input, TokenType.SquareOpenBrace);
+                        case ']':
+                            lexeme.Append(currentChar);
+                            return lexeme.ToToken(input, TokenType.SquareCloseBrace);
                         case '{':
                             lexeme.Append(currentChar);
                             return lexeme.ToToken(input, TokenType.OpenBrace);
